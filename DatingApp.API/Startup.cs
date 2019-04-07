@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Net.Mime;
+using System.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using DatingApp.API.Helper;
 
 namespace DatingApp.API
 {
@@ -61,7 +66,19 @@ namespace DatingApp.API
             }
             else
             {
-               // app.UseHsts();
+            app.UseExceptionHandler(builder => {
+                builder.Run(async context => {
+                    context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+
+                    var error=context.Features.Get<IExceptionHandlerFeature>();
+                    if(error!=null)
+                    {
+                        context.Response.ApplicationError(error.Error.Message);
+                    await context.Response.WriteAsync(error.Error.Message);
+                    }
+
+                });
+            });
             }
 
           //  app.UseHttpsRedirection();
